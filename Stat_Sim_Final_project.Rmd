@@ -1,0 +1,208 @@
+---
+title: "Stat_Sim_Final_project"
+output: html_document
+date: "2025-06-03"
+---
+
+```{r}
+compare <- function(X, a=50, distribution = " ") {
+  a_vals <- seq(1, a, by = 0.1)
+  
+  P_X_great_a <- sapply(a_vals, function(a) mean(X >= a))
+  Markov_bound <- sapply(a_vals, function(a) mean(X) / a)
+  Differnce <- Markov_bound-P_X_great_a
+  Ratio <- Markov_bound/P_X_great_a
+  
+  plot(a_vals, P_X_great_a, type = "l", col = "#0077ff", lwd = 4,
+       xlab = "a", ylab = "Probability", main = paste("Markov bound of", distribution),
+       ylim = c(0, max(Markov_bound)), xlim = c(0, 10))
+  lines(a_vals, Markov_bound, type = "l", col = "#ff0048", lwd = 4)
+  lines(a_vals, Differnce, type = "l", col = "#4fd900", lwd = 2)
+  #lines(a_vals, Ratio, type = "l", col = "purple", lwd = 2)
+  legend("topright", legend = c("Simulated P(X ≥ a)", "Markov bound E[X]/a", "Difference"),
+         col = c("#0077ff", "#ff0048", "#4fd900"), lty = 1, lwd = 2)
+  print(mean(X))
+    
+}
+```
+
+
+```{r}
+compare3 <- function(X, a=50, distribution = " ", a_min = 0, cex = 1) {
+  #a_vals <- seq(a_min, a, length.out = 50)* mean(X)
+  a_vals <- seq(a_min, a, length.out = 50)
+  
+  P_X_great_a <- sapply(a_vals, function(a) mean(X >= a))
+  Markov_bound <- sapply(a_vals, function(a) mean(X) / a)
+  Differnce <- Markov_bound-P_X_great_a
+  Ratio <- Markov_bound/P_X_great_a
+  compare_tf <- ifelse(P_X_great_a < mean(X)/a_vals, TRUE, FALSE)
+  
+  ans <- matrix(c(P_X_great_a, Markov_bound, Differnce, compare_tf), ncol = 4)
+  
+  plot(a_vals, P_X_great_a, type = "l", col = "#0077ff", lwd = 4,
+       xlab = "a", ylab = "a*mean(x) minus probability", main = paste("Markov bound of", distribution),
+       )
+  
+  
+  lines(a_vals, Markov_bound, type = "l", col = "#ff0048", lwd = 4)
+  lines(a_vals, Differnce, type = "l", col = "#4fd900", lwd = 2)
+  
+  legend("topright", legend = c("Simulated P(X ≥ a)", "Markov bound E[X]/a", "Difference"),
+         col = c("#0077ff", "#ff0048", "#4fd900"), lty = 1, lwd = 2, cex = cex)
+  #return(ans)
+}
+```
+
+# Exponential
+```{r}
+n <- 10000
+X_exp <- rexp(n, rate = 1)
+compare(X_exp, distribution = "Exponential")
+```
+
+
+
+# Normal
+```{r}
+set.seed(1234)
+n <- 10000
+X_norm <- rnorm(n, mean = 0, sd = 2)
+X_hnorm <- abs(X_norm)
+compare(X_norm, distribution = "Normal")
+compare(X_hnorm, distribution = "Half-Normal")
+```
+
+
+
+# Gamma
+```{r}
+n <- 10000
+X_gamma <- rgamma(n, shape = 5, rate = 1)
+compare(X_gamma, distribution = "Gamma")
+```
+
+
+
+# Chi-square
+```{r}
+n <- 10000
+X_chisq <- rchisq(n, df = 3)
+compare(X_chisq, distribution = "Chi-square")
+```
+
+
+# Lognormal
+```{r}
+n <- 10000
+X_lognorm <- rlnorm(n, meanlog = 0, sdlog = 1)
+compare(X_lognorm, distribution = "Lognormal")
+```
+
+
+
+# Beta
+```{r}
+n <- 10000
+legend_sz <- 0.8
+par(mfrow = c(2, 2))
+
+X_beta <- rbeta(n, shape1 = 1, shape2 = 1)
+X_beta2 <- rbeta(n, shape1 = 2, shape2 = 100)
+X_beta3 <- rbeta(n, shape1 = 0.5, shape2 = 0.5)
+X_beta4 <- rbeta(n, shape1 = 5, shape2 = 1)
+compare3(X_beta, a=1, distribution = "Beta(1, 1)", cex = legend_sz)
+compare3(X_beta2, a=1, distribution = "Beta(2, 100)", cex = legend_sz)
+compare3(X_beta3, a=1, distribution = "Beta(0.5, 0.5)", cex = legend_sz)
+compare3(X_beta4, a=1, distribution = "Beta(5, 1)", cex = legend_sz)
+```
+
+# Uniform
+```{r}
+n <- 10000
+X_uniform <- runif(n, min = 0, max = 1)  # 產生 0 到 1 的均勻分布
+compare3(X_uniform, distribution = "Uniform(0,1)")
+```
+
+
+# Weibull
+```{r}
+n <- 10000
+X_weibull <- rweibull(n, shape = 2, scale = 1)
+compare(X_weibull, distribution = "Weibull")
+```
+
+```{r}
+
+```
+
+
+```{r}
+compare3 <- function(X, a=1, distribution = " ", a_min = 0, cex = 1, legend_pos = "topright") {
+  #a_vals <- seq(a_min, a, length.out = 50)* mean(X)
+  a_vals <- seq(a_min, a, length.out = 50)
+  P_X_great_a <- sapply(a_vals, function(a) mean(X >= a))
+  Markov_bound <- sapply(a_vals, function(a) mean(X) / a)
+  #Markov_bound <- pmin(Markov_bound, 1)
+  Differnce <- Markov_bound-P_X_great_a
+  compare_tf <- ifelse(P_X_great_a < mean(X)/a_vals, TRUE, FALSE)
+  
+  ans <- matrix(c(P_X_great_a, Markov_bound, Differnce, compare_tf), ncol = 4)
+  
+  plot(a_vals, P_X_great_a, type = "l", col = "#0077ff", lwd = 4,
+       xlab = "a", ylab = "a*mean(x) minus probability", main = paste("Markov bound of", distribution)
+       )
+  
+  
+  lines(a_vals, Markov_bound, type = "l", col = "#ff0048", lwd = 4)
+  lines(a_vals, Differnce, type = "l", col = "#4fd900", lwd = 2)
+  
+  legend(legend_pos, legend = c("Simulated P(X ≥ a)", "Markov bound E[X]/a", "Difference"),
+         col = c("#0077ff", "#ff0048", "#4fd900"), lty = 1, lwd = 2, cex = cex)
+  #return(ans)
+}
+```
+
+```{r}
+X_beta <- rbeta(n, shape1 = 1, shape2 = 1)
+X_beta2 <- rbeta(n, shape1 = 2, shape2 = 100)
+X_beta3 <- rbeta(n, shape1 = 0.5, shape2 = 0.5)
+X_beta4 <- rbeta(n, shape1 = 5, shape2 = 1)
+compare3(X_beta, distribution = "Beta(1, 1)", cex = 0.5)
+compare3(X_beta2, distribution = "Beta(2, 100)", cex = 0.5)
+compare3(X_beta3, distribution = "Beta(0.5, 0.5)", cex = 0.5)
+compare3(X_beta4, distribution = "Beta(5, 1)", cex = 0.5)
+
+```
+
+
+```{r}
+compare4 <- function(X, a=1, distribution = " ", a_min = 0, cex = 1) {
+  #a_vals <- seq(a_min, a, length.out = 50)* mean(X)
+  a_vals <- seq(a_min, a, length.out = 50)
+  P_X_great_a <- sapply(a_vals, function(a) mean(X >= a))
+  Markov_bound <- sapply(a_vals, function(a) mean(X) / a)
+  #Markov_bound <- pmin(Markov_bound, 1)
+  Differnce <- Markov_bound-P_X_great_a
+  compare_tf <- ifelse(P_X_great_a < mean(X)/a_vals, TRUE, FALSE)
+  
+  ans <- matrix(c(P_X_great_a, Markov_bound, Differnce, compare_tf), ncol = 4)
+  
+  plot(a_vals, P_X_great_a, type = "l", col = "#0077ff", lwd = 4,
+       xlab = "a", ylab = "a*mean(x) minus probability", main = paste("Markov bound of", distribution),
+       ylim = c(0, 5)
+       )
+  
+  
+  lines(a_vals, Markov_bound, type = "l", col = "#ff0048", lwd = 4)
+  lines(a_vals, Differnce, type = "l", col = "#4fd900", lwd = 2)
+  
+  legend("topright", legend = c("Simulated P(X ≥ a)", "Markov bound E[X]/a", "Difference"),
+         col = c("#0077ff", "#ff0048", "#4fd900"), lty = 1, lwd = 2, cex = cex)
+  #return(ans)
+}
+
+X_beta4 <- rbeta(n, shape1 = 5, shape2 = 1)
+compare4(X_beta4, distribution = "Beta(5, 1)", cex = 0.8)
+```
+
